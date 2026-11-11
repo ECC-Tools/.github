@@ -1,0 +1,9 @@
+# Opt out of push-triggered ECC bundle pull requests.
+# Comment commands (/ecc-tools analyze, setup, audit, doctor, repair)
+# stay available. See docs/configuration.md.
+
+push:
+  autoAnalyze: false
+
+commands:
+  enabled: true
