@@ -40,6 +40,22 @@ Use these in issues or pull requests after the app is installed:
 /ecc-tools repair
 ```
 
+## Per-repository push opt-out
+
+Repositories can turn off push-triggered analysis without losing comment commands. Commit `.github/ecc-tools.yml` on the default branch:
+
+```yaml
+push:
+  autoAnalyze: false
+
+commands:
+  enabled: true
+```
+
+`push.autoAnalyze: false` stops automatic `feat: add <repo> ECC bundle` pull requests and does not spend analysis quota on that push. `/ecc-tools` comments still run. The full contract, including the legacy `autoPR.enabled` alias and dashboard precedence, is in [docs/configuration.md](docs/configuration.md).
+
+The hosted app must implement this file. Until it does, committing the file does not change app behavior.
+
 ## Plans
 
 ### Open Source
