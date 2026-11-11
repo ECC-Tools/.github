@@ -33,9 +33,13 @@ A command may still open a pull request, because a person asked for that run. Th
 
 ## Where the file is read
 
-On a push that updates the default branch, read `.github/ecc-tools.yml` from the commit that the default branch moved to. If the app also auto-analyzes other branches, read the file from the commit that branch moved to.
+**Push.** When a push updates the default branch, read `.github/ecc-tools.yml` from the commit the default branch moved to. Use that commit for both `push.autoAnalyze` and `commands.enabled` on that push. If the app also auto-analyzes other branches, read the file from the commit that branch moved to.
 
-Missing file: keep today's default. Push-triggered analysis stays allowed, and comment commands stay available.
+**Comment.** For a `/ecc-tools` comment on an issue or pull request, read `.github/ecc-tools.yml` from the **default branch tip** at the time of the comment. `commands.enabled` comes only from that commit. Do not read it from the pull request head. A pull request that edits the file does not change command availability until it merges to the default branch.
+
+The run a command starts may still inspect the pull request head, or another branch the comment names. That target does not change which commit supplies `commands.enabled`.
+
+**Missing file.** On the commit selected above, a missing file keeps today's default. Push-triggered analysis stays allowed, and comment commands stay available.
 
 ## Keys
 
@@ -59,11 +63,14 @@ Missing file: keep today's default. Push-triggered analysis stays allowed, and c
 
 Apply these rules when the file exists:
 
-- Empty file: same as a missing file.
-- YAML that does not parse, or a non-boolean value for any key in the table: skip push-triggered analysis for that push, leave comment commands enabled, and record the parse error once per file blob. Do not post a new comment on every push.
-- Unknown keys: ignore them. Do not treat unknown keys as a reason to reject the file.
+- Empty file, or a file whose parsed value is null: same as a missing file.
+- The root value must be a mapping. A list, a scalar, or any other non-mapping root is invalid. `[]` and `false` are invalid. `{}` is valid and means every key is omitted.
+- When present, `push`, `commands`, and `autoPR` must each be a mapping. `push: false`, `commands: true`, and `autoPR: []` are invalid. `push: {}` is valid and means `push.autoAnalyze` is omitted.
+- A recognized key whose value is not a boolean is invalid. An omitted key is not invalid.
+- Unknown keys inside a valid mapping are ignored. Do not reject the file for an unknown key.
+- Unparsable YAML and every invalid shape above: skip push-triggered analysis for that push, leave comment commands enabled, and record the error once per file blob. Do not post a new comment on every push.
 
-Skipping the push protects quota for a repository that tried to opt out and shipped a typo.
+Skipping the push protects quota for a repository that tried to opt out and shipped a typo. Leaving comment commands enabled on an invalid file avoids locking out `/ecc-tools` because of that typo.
 
 ## Dashboard
 
